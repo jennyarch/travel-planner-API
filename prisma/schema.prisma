@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+//o nome do model tem que ser com letra maiuscula
+model Trip {
+  id           String   @id @default(uuid()) //utilizando o uuid que é pradronizar o meu id que significa unique universal id
+  destination  String
+  starts_at    DateTime
+  ends_at      DateTime
+  is_confirmed Boolean  @default(false) //Como padrão já vem cmo false
+  created_at   DateTime @default(now())
+
+  //aqui cria o relacionamento inverso onde diz que o particapnte pode ter varias viajens
+  participants Participant[]
+  activities   Activity[]
+  links        Link[]
+
+  @@map("trips") //e aqui mapea o nome da model para que seja padrão de banco de dado com a primeira letra minuscula
+}
+
+model Participant {
+  id String @id @default(uuid())
+
+  name         String?
+  email        String
+  is_confirmed Boolean @default(false)
+  is_owner     Boolean @default(false)
+  trip_id      String
+
+  // aqui cria o relacionamento com o modelo Trip(ou seja -> o participante pertence a uma viajem )
+  trip Trip @relation(fields: [trip_id], references: [id])
+
+  @@map("participants")
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  title     String
+  occurs_at DateTime
+  trip_id   String
+
+  trip Trip @relation(fields: [trip_id], references: [id])
+
+  @@map("activities")
+}
+
+model Link {
+  id    String @id @default(uuid())
+  title String
+  url   String
+
+  trip_id String
+
+  trip Trip @relation(fields: [trip_id], references: [id])
+
+  @@map("links")
+}
