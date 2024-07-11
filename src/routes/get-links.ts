@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from 'zod';
 import { prisma } from "../lib/prisma";
-
+import { ClienteError } from "../errors/client-error";
 
 export async function getLinks(app: FastifyInstance){
     app.withTypeProvider<ZodTypeProvider>().get('/trips/:tripId/links', {
@@ -22,7 +22,7 @@ export async function getLinks(app: FastifyInstance){
         })
 
         if(!trip){
-            throw new Error('Trip not found')
+            throw new ClienteError('Trip not found')
         }
 
         return  { links: trip.links }

@@ -6,6 +6,8 @@ import { prisma } from "../lib/prisma";
 import { getMailClient } from "../lib/mail";
 import { dayjs } from "../lib/dayjs";
 import nodemailer from 'nodemailer';
+import { ClienteError } from "../errors/client-error";
+import { env } from "../env";
 
 export async function confirmTrip(app: FastifyInstance){
     app.withTypeProvider<ZodTypeProvider>().get('/trips/:tripId/confirm', {
@@ -31,12 +33,12 @@ export async function confirmTrip(app: FastifyInstance){
         })
 
         if(!trip){
-            throw new Error('Trip not found')
+            throw new ClienteError('Trip not found')
         }
 
         if(trip.is_confirmed){
             //o reply que é um metodo do fastify, vai meio que redirecionar caso a viagem já tenha sido confirmada para o frontend passando o url da pagina de viagens
-            return reply.redirect(`http://localhost:3000/trips/${tripId}`)
+            return reply.redirect(`${env.WEB_BASE_URL}/trips/${tripId}`)
         }
 
         //Se a viagen ainda não foi confirmada, agora vai atualizar as informações abaixo
@@ -68,7 +70,7 @@ export async function confirmTrip(app: FastifyInstance){
         await Promise.all(
             trip.participants.map(async (participant) => {
 
-                const confirmationLink = `http://localhost:3333/participants/${participant.id}/confirm`
+                const confirmationLink = `${env.API_BASE_URL}/participants/${participant.id}/confirm`
 
 
                 const message = await mail.sendMail({
@@ -98,6 +100,6 @@ export async function confirmTrip(app: FastifyInstance){
         )
 
         //Tbm redireciona o usuario para a pagina da viagem
-        return reply.redirect(`http://localhost:3000/trips/${tripId}`)
+        return reply.redirect(`${env.WEB_BASE_URL}/trips/${tripId}`)
     })
 }
